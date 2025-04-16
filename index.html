@@ -1,11 +1,10 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
-  <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#56ab2f">
-
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#56ab2f">
+  <link rel="manifest" href="manifest.json">
   <title>Calculatorul Tău de Calorii</title>
   <style>
     * {
@@ -180,181 +179,8 @@
   </style>
 </head>
 <body>
-  <h1>Calculatorul Tău de Calorii</h1>
-  <div class="search-container">
-    <input type="text" id="search" placeholder="Caută un aliment...">
-  </div>
-
-  <div class="ingredients-list" id="ingredientList"></div>
-
-  <div class="total-btn" onclick="goToIngrediente()">🔥 Total: <span id="totalKcal">0</span> kcal</div>
-
-  <div class="popup" id="popup">
-    <div id="popupText">Câte grame?</div>
-    <input type="number" id="gramajInput" placeholder="Grame...">
-    <button onclick="adaugaIngredient()">Adaugă</button>
-    <button class="close-popup" onclick="inchidePopup()">Închide</button>
-  </div>
-
-  <div class="section-ingrediente" id="ingredientePage">
-    <h2>Ingrediente alese</h2>
-    <div id="listaIngrediente"></div>
-    <p id="emptyMessage">Lista este goală.</p>
-    <button class="delete-all-btn hidden" id="btnStergeTot" onclick="stergeTot()">🗑️ Șterge tot</button>
-    <button class="back-btn" onclick="goBack()">🔙 Înapoi la produse</button>
-  </div>
-
-  <!-- PAGINA NOUĂ DE MENIU -->
-  <div class="section-menu" id="paginaMeniu" style="display: none; flex-direction: column; align-items: center; margin-top: 5rem;">
-    <h2>Meniu Nou</h2>
-    <p>Aici e noua pagină de meniu adăugată. Poți pune ce vrei aici mai târziu.</p>
-    <button class="back-btn" onclick="inchideMeniu()">🔙 Înapoi</button>
-  </div>
-
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const caloriiPerGram = {
-        'Mămăligă': 1.00,
-        'Piept de pui': 1.65,
-        'Orez fiert': 1.30,
-        'Cartofi copți': 0.90,
-        'Ulei de măsline': 8.90,
-        'Banană': 0.89,
-        'Brânză': 3.20
-      };
-
-      const ingredientList = document.getElementById('ingredientList');
-      const popup = document.getElementById('popup');
-      const popupText = document.getElementById('popupText');
-      const gramajInput = document.getElementById('gramajInput');
-      const totalKcalSpan = document.getElementById('totalKcal');
-      const listaIngrediente = document.getElementById('listaIngrediente');
-      const emptyMessage = document.getElementById('emptyMessage');
-      const btnStergeTot = document.getElementById('btnStergeTot');
-      const searchInput = document.getElementById('search');
-
-      let lista = [];
-      let totalKcal = 0;
-      let alimentCurent = null;
-      let indexEdit = null;
-
-      function renderIngrediente(filter = '') {
-        ingredientList.innerHTML = '';
-        for (let nume in caloriiPerGram) {
-          if (nume.toLowerCase().includes(filter.toLowerCase())) {
-            const btn = document.createElement('div');
-            btn.className = 'ingredient-btn';
-            btn.innerText = nume;
-            btn.onclick = () => {
-              alimentCurent = nume;
-              indexEdit = null;
-              popupText.innerText = `Câte grame?`;
-              gramajInput.value = '';
-              popup.style.display = 'flex';
-            };
-            ingredientList.appendChild(btn);
-          }
-        }
-      }
-
-      searchInput.addEventListener('input', () => {
-        renderIngrediente(searchInput.value);
-      });
-
-      renderIngrediente();
-
-      window.adaugaIngredient = function () {
-        const gramaj = parseFloat(gramajInput.value);
-        if (isNaN(gramaj) || gramaj <= 0) return;
-        const kcal = caloriiPerGram[alimentCurent] * gramaj;
-
-        if (indexEdit !== null) {
-          totalKcal -= lista[indexEdit].kcal;
-          lista[indexEdit] = { nume: alimentCurent, gramaj, kcal };
-        } else {
-          lista.push({ nume: alimentCurent, gramaj, kcal });
-        }
-
-        totalKcal = lista.reduce((acc, cur) => acc + cur.kcal, 0);
-        totalKcalSpan.innerText = totalKcal.toFixed(2);
-        popup.style.display = 'none';
-      }
-
-      window.inchidePopup = function () {
-        popup.style.display = 'none';
-      }
-
-      window.goToIngrediente = function () {
-        document.getElementById("ingredientePage").style.display = "flex";
-        listaIngrediente.innerHTML = '';
-        if (lista.length === 0) {
-          emptyMessage.style.display = 'block';
-          btnStergeTot.classList.add('hidden');
-        } else {
-          emptyMessage.style.display = 'none';
-          btnStergeTot.classList.remove('hidden');
-          lista.forEach((item, i) => {
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.innerHTML = `
-              ${item.nume} (${item.gramaj}g) - ${item.kcal.toFixed(2)} kcal
-              <div class="item-controls">
-                <button class="edit-btn" onclick="editeaza(${i})">✏️</button>
-                <button class="delete-btn" onclick="sterge(${i})">❌</button>
-              </div>
-            `;
-            listaIngrediente.appendChild(div);
-          });
-        }
-      }
-
-      window.goBack = function () {
-        document.getElementById("ingredientePage").style.display = "none";
-      }
-
-      window.editeaza = function (i) {
-        alimentCurent = lista[i].nume;
-        indexEdit = i;
-        gramajInput.value = lista[i].gramaj;
-        popupText.innerText = `Câte grame de ${alimentCurent}?`;
-        popup.style.display = 'flex';
-      }
-
-      window.sterge = function (i) {
-        totalKcal -= lista[i].kcal;
-        lista.splice(i, 1);
-        totalKcalSpan.innerText = totalKcal.toFixed(2);
-        window.goToIngrediente();
-      }
-
-      window.stergeTot = function () {
-        lista = [];
-        totalKcal = 0;
-        totalKcalSpan.innerText = '0';
-        window.goToIngrediente();
-      }
-
-      // Funcții pentru meniul nou
-      window.deschideMeniu = function () {
-        document.body.querySelector("h1").style.display = "none";
-        document.querySelector(".search-container").style.display = "none";
-        document.getElementById("ingredientList").style.display = "none";
-        document.getElementById("paginaMeniu").style.display = "flex";
-      }
-
-      window.inchideMeniu = function () {
-        document.getElementById("paginaMeniu").style.display = "none";
-        document.body.querySelector("h1").style.display = "block";
-        document.querySelector(".search-container").style.display = "block";
-        document.getElementById("ingredientList").style.display = "flex";
-      }
-    });
-  </script>
-  <script>
+<script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('service-worker.js');
   }
 </script>
-
-</body>
-</html>
