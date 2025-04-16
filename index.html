@@ -1,36 +1,22 @@
 <!DOCTYPE html>
 <html lang="ro">
 <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Calculatorul Tău de Calorii</title>
   <link rel="manifest" href="manifest.json">
   <link rel="icon" href="logo_192.png" type="image/png">
   <meta name="theme-color" content="#56ab2f">
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Calculatorul Tău de Calorii</title>
   <style>
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Segoe UI', sans-serif;
-    }
-
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', sans-serif; }
     body {
       background: linear-gradient(to right, #a8e063, #56ab2f);
       color: white;
       text-align: center;
       padding: 2rem;
     }
-
-    h1 {
-      font-size: 2.5rem;
-      margin-bottom: 2rem;
-    }
-
-    .search-container {
-      margin-bottom: 2rem;
-    }
-
+    h1 { font-size: 2.5rem; margin-bottom: 2rem; }
+    .search-container { margin-bottom: 2rem; }
     .search-container input {
       padding: 0.8rem 1rem;
       border-radius: 25px;
@@ -40,7 +26,6 @@
       color: black;
       outline: none;
     }
-
     .ingredients-list {
       display: flex;
       flex-wrap: wrap;
@@ -48,7 +33,6 @@
       gap: 1rem;
       margin-bottom: 2rem;
     }
-
     .ingredient-btn {
       padding: 0.6rem 1.2rem;
       background: white;
@@ -58,11 +42,7 @@
       cursor: pointer;
       transition: transform 0.1s ease;
     }
-
-    .ingredient-btn:hover {
-      transform: scale(0.95);
-    }
-
+    .ingredient-btn:hover { transform: scale(0.95); }
     .total-btn {
       position: fixed;
       top: 1rem;
@@ -75,11 +55,9 @@
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
       cursor: pointer;
     }
-
     .popup {
       position: fixed;
-      top: 50%;
-      left: 50%;
+      top: 50%; left: 50%;
       transform: translate(-50%, -50%);
       background: white;
       color: black;
@@ -91,14 +69,12 @@
       align-items: center;
       z-index: 1000;
     }
-
     .popup input {
       margin-top: 1rem;
       padding: 0.5rem;
       border-radius: 10px;
       border: 1px solid gray;
     }
-
     .popup button {
       margin-top: 1rem;
       padding: 0.5rem 1rem;
@@ -109,21 +85,12 @@
       font-weight: bold;
       cursor: pointer;
     }
-
     .close-popup {
       background: white;
       color: red;
       border: 2px solid red;
       margin-top: 0.5rem;
     }
-
-    .section-ingrediente {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      margin-top: 5rem;
-    }
-
     .item {
       background: white;
       color: green;
@@ -136,7 +103,6 @@
       justify-content: space-between;
       align-items: center;
     }
-
     .item-controls button {
       margin-left: 0.5rem;
       font-size: 1rem;
@@ -145,17 +111,8 @@
       cursor: pointer;
       border: none;
     }
-
-    .edit-btn {
-      background: orange;
-      color: white;
-    }
-
-    .delete-btn {
-      background: red;
-      color: white;
-    }
-
+    .edit-btn { background: orange; color: white; }
+    .delete-btn { background: red; color: white; }
     .delete-all-btn {
       background: red;
       color: white;
@@ -163,7 +120,6 @@
       border-radius: 10px;
       margin-top: 1rem;
     }
-
     .update-btn {
       background: dodgerblue;
       color: white;
@@ -174,7 +130,6 @@
       border: none;
       cursor: pointer;
     }
-
     .back-btn {
       margin-top: 1rem;
       padding: 0.5rem 1rem;
@@ -185,7 +140,6 @@
       border: none;
       cursor: pointer;
     }
-
     .load-more-btn {
       background: white;
       color: green;
@@ -193,7 +147,19 @@
       border-radius: 25px;
       font-weight: bold;
       cursor: pointer;
-    
+      border: 3px solid orange;
+    }
+    .cos-total-box {
+      background: white;
+      color: #56ab2f;
+      font-weight: bold;
+      padding: 0.8rem 1.5rem;
+      border-radius: 25px;
+      display: inline-block;
+      box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      margin-top: 1rem; /* 🔧 AICI AM MODIFICAT */
+      margin-bottom: 1.5rem;
+      font-size: 1.2rem;
     }
   </style>
 </head>
@@ -217,6 +183,7 @@
 
   <div id="paginaCos" style="display: none;">
     <h2>Ingredientele tale</h2>
+    <div id="totalKcalCos" class="cos-total-box">🔥 Total: 0 kcal</div>
     <div id="listaCosIngrediente"></div>
     <div id="stergeTotContainer"></div>
     <button class="update-btn" onclick="actualizeazaCos()">🔄 Actualizează coș</button>
@@ -225,7 +192,7 @@
 
   <script>
     const caloriiPerGram = {
-            'Orez fiert': 1.3,
+          'Orez fiert': 1.3,
     'Paste penne': 3.59,
     'Spaghete': 3.59,
     'Baton Nesquik lapte': 3.95,
@@ -262,6 +229,7 @@
     'Mămăligă': 1.00,
     'Cartofi copți': 0.90,
     'Ulei de măsline': 8.90,
+    'Brânză': 3.20,
     'Nutella': 5.39,
     'Crema de fistic 45%': 5.73,
     'Dulceață merișoare IKEA': 1.7,
@@ -270,13 +238,14 @@
     'Ardei capia în oțet': 0.18,
     'Ulei': 8.28,
     'Sos Burger': 3.42,
-
+    'Înghețată Pirulo Fructe Joy': 0.88,
     };
 
     const ingredientList = document.getElementById('ingredientList');
     const popup = document.getElementById('popup');
     const gramajInput = document.getElementById('gramajInput');
     const totalKcalSpan = document.getElementById('totalKcal');
+    const totalKcalCosSpan = document.getElementById('totalKcalCos');
     const searchInput = document.getElementById('search');
     const popupText = document.getElementById('popupText');
     const cosContainer = document.getElementById('listaCosIngrediente');
@@ -287,7 +256,6 @@
     let totalKcal = 0;
     let alimentCurent = null;
     let indexEdit = null;
-
     let afisateInitial = 8;
     let pasAfisare = 20;
     let numarAfisate = afisateInitial;
@@ -296,13 +264,10 @@
     function renderIngrediente(filter = '') {
       ingredientList.innerHTML = '';
       loadMoreContainer.innerHTML = '';
-
       ingredienteFiltrate = Object.keys(caloriiPerGram)
         .sort()
         .filter(nume => nume.toLowerCase().includes(filter.toLowerCase()));
-
       const deAfisat = ingredienteFiltrate.slice(0, numarAfisate);
-
       deAfisat.forEach(nume => {
         const btn = document.createElement('div');
         btn.className = 'ingredient-btn';
@@ -316,7 +281,6 @@
         };
         ingredientList.appendChild(btn);
       });
-
       if (numarAfisate < ingredienteFiltrate.length) {
         const moreBtn = document.createElement('button');
         moreBtn.className = 'load-more-btn';
@@ -333,7 +297,6 @@
       const gramaj = parseFloat(gramajInput.value);
       if (isNaN(gramaj) || gramaj <= 0) return;
       const kcal = caloriiPerGram[alimentCurent] * gramaj;
-
       if (indexEdit !== null) {
         totalKcal -= lista[indexEdit].kcal;
         lista[indexEdit] = { nume: alimentCurent, gramaj, kcal };
@@ -341,10 +304,10 @@
       } else {
         lista.push({ nume: alimentCurent, gramaj, kcal });
       }
-
       totalKcal = lista.reduce((acc, cur) => acc + cur.kcal, 0);
       totalKcalSpan.innerText = totalKcal.toFixed(2);
       popup.style.display = 'none';
+      salveazaInLocalStorage();
     }
 
     function inchidePopup() {
@@ -366,6 +329,7 @@
     function actualizeazaCos() {
       cosContainer.innerHTML = '';
       stergeTotContainer.innerHTML = '';
+      totalKcalCosSpan.innerText = `🔥 Total: ${totalKcal.toFixed(2)} kcal`;
       if (lista.length === 0) {
         cosContainer.innerHTML = "<p>Nu ai adăugat niciun ingredient.</p>";
       } else {
@@ -395,6 +359,7 @@
       lista.splice(i, 1);
       totalKcalSpan.innerText = totalKcal.toFixed(2);
       actualizeazaCos();
+      salveazaInLocalStorage();
     }
 
     function stergeTot() {
@@ -402,6 +367,7 @@
       totalKcal = 0;
       totalKcalSpan.innerText = '0';
       actualizeazaCos();
+      salveazaInLocalStorage();
     }
 
     function editeaza(i) {
@@ -413,12 +379,29 @@
       popup.style.display = 'flex';
     }
 
+    function salveazaInLocalStorage() {
+      localStorage.setItem('cosIngrediente', JSON.stringify(lista));
+    }
+
+    function incarcaDinLocalStorage() {
+      const salvate = localStorage.getItem('cosIngrediente');
+      if (salvate) {
+        lista = JSON.parse(salvate);
+        totalKcal = lista.reduce((acc, cur) => acc + cur.kcal, 0);
+        totalKcalSpan.innerText = totalKcal.toFixed(2);
+      }
+    }
+
     searchInput.addEventListener('input', () => {
       numarAfisate = afisateInitial;
       renderIngrediente(searchInput.value);
     });
 
+    incarcaDinLocalStorage();
     renderIngrediente();
+  </script>
+</body>
+</html>
   </script>
 </body>
 </html>
