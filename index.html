@@ -46,6 +46,7 @@
       flex-wrap: wrap;
       justify-content: center;
       gap: 1rem;
+      margin-bottom: 2rem;
     }
 
     .ingredient-btn {
@@ -116,10 +117,6 @@
       margin-top: 0.5rem;
     }
 
-    .hidden {
-      display: none;
-    }
-
     .section-ingrediente {
       display: none;
       flex-direction: column;
@@ -131,7 +128,7 @@
       background: white;
       color: green;
       padding: 0.8rem;
-      margin: 0.5rem;
+      margin: 0.5rem auto;
       border-radius: 10px;
       width: 90%;
       max-width: 400px;
@@ -167,8 +164,19 @@
       margin-top: 1rem;
     }
 
+    .update-btn {
+      background: dodgerblue;
+      color: white;
+      padding: 0.5rem 1rem;
+      border-radius: 10px;
+      margin-top: 1rem;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+    }
+
     .back-btn {
-      margin-top: 2rem;
+      margin-top: 1rem;
       padding: 0.5rem 1rem;
       background: white;
       color: purple;
@@ -177,17 +185,28 @@
       border: none;
       cursor: pointer;
     }
+
+    .load-more-btn {
+      background: white;
+      color: green;
+      padding: 0.5rem 1.5rem;
+      border-radius: 25px;
+      font-weight: bold;
+      cursor: pointer;
+      border: 3px solid orange;
+    }
   </style>
 </head>
 <body>
-  <h1>Calculatorul Tău de Calorii</h1>
-  <div class="search-container">
-    <input type="text" id="search" placeholder="Caută un aliment...">
+  <div id="paginaPrincipala">
+    <h1>Calculatorul Tău de Calorii</h1>
+    <div class="search-container">
+      <input type="text" id="search" placeholder="Caută un aliment...">
+    </div>
+    <div class="ingredients-list" id="ingredientList"></div>
+    <div id="loadMoreContainer"></div>
+    <div class="total-btn" onclick="deschideCos()">🔥 Total: <span id="totalKcal">0</span> kcal</div>
   </div>
-
-  <div class="ingredients-list" id="ingredientList"></div>
-
-  <div class="total-btn" onclick="goToIngrediente()">🔥 Total: <span id="totalKcal">0</span> kcal</div>
 
   <div class="popup" id="popup">
     <div id="popupText">Câte grame?</div>
@@ -196,201 +215,202 @@
     <button class="close-popup" onclick="inchidePopup()">Închide</button>
   </div>
 
-  <div class="section-ingrediente" id="ingredientePage">
-    <h2>Ingrediente alese</h2>
-    <div id="listaIngrediente"></div>
-    <p id="emptyMessage">Lista este goală.</p>
-    <button class="delete-all-btn hidden" id="btnStergeTot" onclick="stergeTot()">🗑️ Șterge tot</button>
-    <button class="back-btn" onclick="goBack()">🔙 Înapoi la produse</button>
-  </div>
-
-  <!-- PAGINA NOUĂ DE MENIU -->
-  <div class="section-menu" id="paginaMeniu" style="display: none; flex-direction: column; align-items: center; margin-top: 5rem;">
-    <h2>Meniu Nou</h2>
-    <p>Aici e noua pagină de meniu adăugată. Poți pune ce vrei aici mai târziu.</p>
-    <button class="back-btn" onclick="inchideMeniu()">🔙 Înapoi</button>
+  <div id="paginaCos" style="display: none;">
+    <h2>Ingredientele tale</h2>
+    <div id="listaCosIngrediente"></div>
+    <div id="stergeTotContainer"></div>
+    <button class="update-btn" onclick="actualizeazaCos()">🔄 Actualizează coș</button>
+    <button class="back-btn" onclick="inapoiLaCalculator()">🔙 Înapoi</button>
   </div>
 
   <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      const caloriiPerGram = {
-        'Pesmet panko': 3.34,
-        'Stafide': 3.40,
-        'Pesmet auriu granulat': 3.55,
-        'Delikat găină': 1.34,
-        'Orez basmati nefiert': 3.57,
-        'Biscuiți Paradis': 4.59,
-        'Baton Trix': 3.84,
-        'Baton Nesquik lapte': 3.95,
-        'Bueno Ciocolata': 5.72,
-        'Spaghete': 3.59,
-        'Paste penne': 3.59,
-        'Griș de grâu': 3.49,
-        'Făină': 3.51,
-        'Fulgi de porumb cu îndulcitori Mega Image': 0.2648,
-        'Cereale Lion Wildcrush': 4.32,
-        'Milkshake vanilie Dr. Oetker': 1.07,
-        'Ciocolată albă La Festa': 3.89,
-        'Mălai': 3.47,
-        'Budincă Special Creme Ole Dr. Oetker': 1.11,
-        'Ciocolată Milka': 5.39,
-        'Orez nefiert Camolino': 3.44,
-        'Sos chifteluțe IKEA': 0.80,
-        'Maioneză Hellmann\'s': 6.71,
-        'Smântână Casa Bună': 1.31,
-        'Portocale': 0.465,
-        'Cașcaval Delavo': 3.23,
-        'Sos BBQ': 1.79,
-        'Smântână pentru gătit Dorna': 3.07,
-        'Ketchup Tomi': 0.84,
-        'Lapte 3.5%': 0.65,
-        'Lapte 1.5%': 0.44,
-        'Fidea cuiburi': 3.50,
-        'Semințe prăjite și sărate': 5.55,
-        'Mămăligă': 1.00,
-        'Piept de pui': 1.65,
-        'Orez fiert': 1.30,
-        'Cartofi copți': 0.90,
-        'Ulei de măsline': 8.90,
-        'Banană': 0.89,
-        'Brânză': 3.20
-      };
+    const caloriiPerGram = {
+          'Orez fiert': 1.3,
+    'Paste penne': 3.59,
+    'Spaghete': 3.59,
+    'Baton Nesquik lapte': 3.95,
+    'Cașcaval Delaco': 3.23,
+    'Pesmet panko': 3.34,
+    'Stafide': 3.40,
+    'Pesmet auriu granulat': 3.55,
+    'Delikat găină': 1.34,
+    'Orez basmati nefiert': 3.57,
+    'Biscuiți Paradis': 4.59,
+    'Baton Trix': 3.84,
+    'Bueno Ciocolata': 5.72,
+    'Griș de grâu': 3.49,
+    'Făină': 3.51,
+    'Fulgi de porumb cu îndulcitori Mega Image': 0.26,
+    'Cereale Lion Wildcrush': 4.32,
+    'Milkshake vanilie Dr. Oetker': 1.07,
+    'Ciocolată albă La Festa': 3.89,
+    'Mălai': 3.47,
+    'Budincă Special Creme Ole Dr. Oetker': 1.11,
+    'Ciocolată Milka': 5.39,
+    'Orez nefiert Camolino': 3.44,
+    'Sos chifteluțe IKEA': 0.80,
+    'Maioneză Hellmanns': 6.71,
+    'Smântână Casa Bună': 1.31,
+    'Portocale': 0.47,
+    'Sos BBQ': 1.79,
+    'Smântână pentru gătit Dorna': 3.07,
+    'Ketchup Tomi': 0.84,
+    'Lapte 3.5%': 0.65,
+    'Lapte 1.5%': 0.44,
+    'Fidea cuiburi': 3.50,
+    'Semințe prăjite și sărate': 5.55,
+    'Mămăligă': 1.00,
+    'Cartofi copți': 0.90,
+    'Ulei de măsline': 8.90,
+    'Brânză': 3.20,
+    };
 
-      const ingredientList = document.getElementById('ingredientList');
-      const popup = document.getElementById('popup');
-      const popupText = document.getElementById('popupText');
-      const gramajInput = document.getElementById('gramajInput');
-      const totalKcalSpan = document.getElementById('totalKcal');
-      const listaIngrediente = document.getElementById('listaIngrediente');
-      const emptyMessage = document.getElementById('emptyMessage');
-      const btnStergeTot = document.getElementById('btnStergeTot');
-      const searchInput = document.getElementById('search');
+    const ingredientList = document.getElementById('ingredientList');
+    const popup = document.getElementById('popup');
+    const gramajInput = document.getElementById('gramajInput');
+    const totalKcalSpan = document.getElementById('totalKcal');
+    const searchInput = document.getElementById('search');
+    const popupText = document.getElementById('popupText');
+    const cosContainer = document.getElementById('listaCosIngrediente');
+    const stergeTotContainer = document.getElementById('stergeTotContainer');
+    const loadMoreContainer = document.getElementById('loadMoreContainer');
 
-      let lista = [];
-      let totalKcal = 0;
-      let alimentCurent = null;
-      let indexEdit = null;
+    let lista = [];
+    let totalKcal = 0;
+    let alimentCurent = null;
+    let indexEdit = null;
 
-      function renderIngrediente(filter = '') {
-        ingredientList.innerHTML = '';
-        for (let nume in caloriiPerGram) {
-          if (nume.toLowerCase().includes(filter.toLowerCase())) {
-            const btn = document.createElement('div');
-            btn.className = 'ingredient-btn';
-            btn.innerText = nume;
-            btn.onclick = () => {
-              alimentCurent = nume;
-              indexEdit = null;
-              popupText.innerText = `Câte grame?`;
-              gramajInput.value = '';
-              popup.style.display = 'flex';
-            };
-            ingredientList.appendChild(btn);
-          }
-        }
-      }
+    let afisateInitial = 8;
+    let pasAfisare = 20;
+    let numarAfisate = afisateInitial;
+    let ingredienteFiltrate = [];
 
-      searchInput.addEventListener('input', () => {
-        renderIngrediente(searchInput.value);
+    function renderIngrediente(filter = '') {
+      ingredientList.innerHTML = '';
+      loadMoreContainer.innerHTML = '';
+
+      ingredienteFiltrate = Object.keys(caloriiPerGram)
+        .sort()
+        .filter(nume => nume.toLowerCase().includes(filter.toLowerCase()));
+
+      const deAfisat = ingredienteFiltrate.slice(0, numarAfisate);
+
+      deAfisat.forEach(nume => {
+        const btn = document.createElement('div');
+        btn.className = 'ingredient-btn';
+        btn.innerText = nume;
+        btn.onclick = () => {
+          alimentCurent = nume;
+          indexEdit = null;
+          gramajInput.value = '';
+          popupText.innerText = `Câte grame de ${nume}?`;
+          popup.style.display = 'flex';
+        };
+        ingredientList.appendChild(btn);
       });
 
-      renderIngrediente();
+      if (numarAfisate < ingredienteFiltrate.length) {
+        const moreBtn = document.createElement('button');
+        moreBtn.className = 'load-more-btn';
+        moreBtn.innerText = 'Încarcă mai multe';
+        moreBtn.onclick = () => {
+          numarAfisate += pasAfisare;
+          renderIngrediente(filter);
+        };
+        loadMoreContainer.appendChild(moreBtn);
+      }
+    }
 
-      window.adaugaIngredient = function () {
-        const gramaj = parseFloat(gramajInput.value);
-        if (isNaN(gramaj) || gramaj <= 0) return;
-        const kcal = caloriiPerGram[alimentCurent] * gramaj;
+    function adaugaIngredient() {
+      const gramaj = parseFloat(gramajInput.value);
+      if (isNaN(gramaj) || gramaj <= 0) return;
+      const kcal = caloriiPerGram[alimentCurent] * gramaj;
 
-        if (indexEdit !== null) {
-          totalKcal -= lista[indexEdit].kcal;
-          lista[indexEdit] = { nume: alimentCurent, gramaj, kcal };
-        } else {
-          lista.push({ nume: alimentCurent, gramaj, kcal });
-        }
-
-        totalKcal = lista.reduce((acc, cur) => acc + cur.kcal, 0);
-        totalKcalSpan.innerText = totalKcal.toFixed(2);
-        popup.style.display = 'none';
+      if (indexEdit !== null) {
+        totalKcal -= lista[indexEdit].kcal;
+        lista[indexEdit] = { nume: alimentCurent, gramaj, kcal };
+        indexEdit = null;
+      } else {
+        lista.push({ nume: alimentCurent, gramaj, kcal });
       }
 
-      window.inchidePopup = function () {
-        popup.style.display = 'none';
-      }
+      totalKcal = lista.reduce((acc, cur) => acc + cur.kcal, 0);
+      totalKcalSpan.innerText = totalKcal.toFixed(2);
+      popup.style.display = 'none';
+    }
 
-      window.goToIngrediente = function () {
-        document.getElementById("ingredientePage").style.display = "flex";
-        listaIngrediente.innerHTML = '';
-        if (lista.length === 0) {
-          emptyMessage.style.display = 'block';
-          btnStergeTot.classList.add('hidden');
-        } else {
-          emptyMessage.style.display = 'none';
-          btnStergeTot.classList.remove('hidden');
-          lista.forEach((item, i) => {
-            const div = document.createElement('div');
-            div.className = 'item';
-            div.innerHTML = `
-              ${item.nume} (${item.gramaj}g) - ${item.kcal.toFixed(2)} kcal
-              <div class="item-controls">
-                <button class="edit-btn" onclick="editeaza(${i})">✏️</button>
-                <button class="delete-btn" onclick="sterge(${i})">❌</button>
-              </div>
-            `;
-            listaIngrediente.appendChild(div);
-          });
-        }
-      }
+    function inchidePopup() {
+      popup.style.display = 'none';
+      indexEdit = null;
+    }
 
-      window.goBack = function () {
-        document.getElementById("ingredientePage").style.display = "none";
-      }
+    function deschideCos() {
+      document.getElementById('paginaPrincipala').style.display = 'none';
+      document.getElementById('paginaCos').style.display = 'block';
+      actualizeazaCos();
+    }
 
-      window.editeaza = function (i) {
-        alimentCurent = lista[i].nume;
-        indexEdit = i;
-        gramajInput.value = lista[i].gramaj;
-        popupText.innerText = `Câte grame de ${alimentCurent}?`;
-        popup.style.display = 'flex';
-      }
+    function inapoiLaCalculator() {
+      document.getElementById('paginaCos').style.display = 'none';
+      document.getElementById('paginaPrincipala').style.display = 'block';
+    }
 
-      window.sterge = function (i) {
-        totalKcal -= lista[i].kcal;
-        lista.splice(i, 1);
-        totalKcalSpan.innerText = totalKcal.toFixed(2);
-        window.goToIngrediente();
+    function actualizeazaCos() {
+      cosContainer.innerHTML = '';
+      stergeTotContainer.innerHTML = '';
+      if (lista.length === 0) {
+        cosContainer.innerHTML = "<p>Nu ai adăugat niciun ingredient.</p>";
+      } else {
+        lista.forEach((item, i) => {
+          const div = document.createElement('div');
+          div.className = 'item';
+          div.innerHTML = `
+            <span>${item.nume} (${item.gramaj}g)</span>
+            <strong>${item.kcal.toFixed(2)} kcal</strong>
+            <div class="item-controls">
+              <button class="edit-btn" onclick="editeaza(${i})">✏️</button>
+              <button class="delete-btn" onclick="sterge(${i})">❌</button>
+            </div>
+          `;
+          cosContainer.appendChild(div);
+        });
+        const btn = document.createElement('button');
+        btn.className = 'delete-all-btn';
+        btn.innerText = 'Șterge tot';
+        btn.onclick = stergeTot;
+        stergeTotContainer.appendChild(btn);
       }
+    }
 
-      window.stergeTot = function () {
-        lista = [];
-        totalKcal = 0;
-        totalKcalSpan.innerText = '0';
-        window.goToIngrediente();
-      }
+    function sterge(i) {
+      totalKcal -= lista[i].kcal;
+      lista.splice(i, 1);
+      totalKcalSpan.innerText = totalKcal.toFixed(2);
+      actualizeazaCos();
+    }
 
-      // Funcții pentru meniul nou
-      window.deschideMeniu = function () {
-        document.body.querySelector("h1").style.display = "none";
-        document.querySelector(".search-container").style.display = "none";
-        document.getElementById("ingredientList").style.display = "none";
-        document.getElementById("paginaMeniu").style.display = "flex";
-      }
+    function stergeTot() {
+      lista = [];
+      totalKcal = 0;
+      totalKcalSpan.innerText = '0';
+      actualizeazaCos();
+    }
 
-      window.inchideMeniu = function () {
-        document.getElementById("paginaMeniu").style.display = "none";
-        document.body.querySelector("h1").style.display = "block";
-        document.querySelector(".search-container").style.display = "block";
-        document.getElementById("ingredientList").style.display = "flex";
-      }
+    function editeaza(i) {
+      const item = lista[i];
+      alimentCurent = item.nume;
+      indexEdit = i;
+      gramajInput.value = item.gramaj;
+      popupText.innerText = `Câte grame de ${alimentCurent}?`;
+      popup.style.display = 'flex';
+    }
+
+    searchInput.addEventListener('input', () => {
+      numarAfisate = afisateInitial;
+      renderIngrediente(searchInput.value);
     });
+
+    renderIngrediente();
   </script>
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('service-worker.js')
-        .then(reg => console.log('✅ Service Worker înregistrat!', reg))
-        .catch(err => console.log('❌ Eroare Service Worker:', err));
-    });
-  }
-</script>
 </body>
 </html>
