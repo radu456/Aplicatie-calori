@@ -1,21 +1,21 @@
-self.addEventListener("install", e => {
-  e.waitUntil(
-    caches.open("calorii-v1").then(cache => {
+self.addEventListener('install', event => {
+  event.waitUntil(
+    caches.open('v1').then(cache => {
       return cache.addAll([
-        "./",
-        "./index.html",
-        "./style.css",
-        "./script.js",
-        "./manifest.json",
-        "./logo-192.png",
-        "./logo-512.png"
+        './',
+        './index.html',
+        './style.css',
+        './script.js',
+        './logo_192.png',
+        './logo_512.png'
       ]);
     })
   );
 });
 
-self.addEventListener("fetch", e => {
-  e.respondWith(
-    caches.match(e.request).then(response => response || fetch(e.request))
+self.addEventListener('fetch', event => {
+  event.respondWith(
+    caches.match(event.request)
+      .then(response => response || fetch(event.request))
   );
 });
